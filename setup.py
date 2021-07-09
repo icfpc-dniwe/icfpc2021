@@ -22,7 +22,8 @@ setup(
         "scipy",
         "numba",
         "shapely",
-        "dataclasses_json"
+        "dataclasses_json",
+        "pathos"
     ],
     entry_points={
         "console_scripts": [

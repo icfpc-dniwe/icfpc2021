@@ -10,6 +10,7 @@ from ..geometry import vertices_to_lines, lines_to_vertices
 from ..placement import fit_figure
 from ..discretize import discretize_points
 from .edge_folding import dummy_folding_solver
+from .brute_folder import iterate_folding
 from ..rating import rate
 
 
@@ -47,6 +48,15 @@ def solve_first_problem(client: Client):
     assert validate_solution(problem, Solution(vertices=discretized_points))
 
 
+def fold_first_problem(client: Client):
+    problem = client.get_problem(1)
+    folded_solution = iterate_folding(problem, 1000)
+    hole = Polygon(problem.hole)
+    print(folded_solution)
+    # discretized_points = discretize_points(hole, problem.figure.edges, folded_solution)
+    # print(validate_solution(problem, Solution(vertices=discretized_points)))
+
+
 def solve_problem_28():
     for problem_id in range(27, 28):
         print(problem_id, ':')
@@ -59,7 +69,7 @@ def main():
     with open(sys.argv[1]) as tf:
         token = tf.read().strip()
     client = Client(token)
-    solve_first_problem(client)
+    fold_first_problem(client)
     # assert validate_solution(problem, solution)
     # print(rate(problem, solution))
     # client.post_solution(1, test_solution)

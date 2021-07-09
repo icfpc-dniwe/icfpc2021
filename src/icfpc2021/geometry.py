@@ -86,19 +86,32 @@ def point_dot(left_point: PointF, right_point: PointF) -> float:
 
 
 @njit
-def mirror_shift(edge: Tuple[PointF, PointF], point: PointF) -> PointF:
-    section = np.array(edge[1]) - np.array(edge[0])
-    upper = np.array(point) - np.array(edge[0])
-    shift = 2 * (np.dot(upper, section) / np.dot(section, section) * section - upper)
-    return shift[0], shift[1]
+def point_minus(left_point: PointF, right_point: PointF) -> PointF:
+    return left_point[0] - right_point[0], left_point[1] - right_point[1]
 
 
 @njit
+def point_plus(left_point: PointF, right_point: PointF) -> PointF:
+    return left_point[0] + right_point[0], left_point[1] + right_point[1]
+
+
+@njit
+def mirror_shift(edge: Tuple[PointF, PointF], point: PointF) -> PointF:
+    section = point_minus(edge[1], edge[0])
+    upper = point_minus(point, edge[0])
+    shift_coeff = point_dot(upper, section) / point_dot(section, section)
+    section = shift_coeff * section[0], shift_coeff * section[1]
+    shift = point_minus(section, upper)
+    shift = 2 * shift[0], 2 * shift[1]
+    return shift[0], shift[1]
+
+
+@njit(parallel=True)
 def shift_points(vertices: Sequence[PointF], shift: PointF) -> List[PointF]:
     return [(cur_v[0] + shift[0], cur_v[1] + shift[1]) for cur_v in vertices]
 
 
-@njit
+@njit(parallel=True)
 def shift_points_filter(vertices: Sequence[PointF], shift: PointF, mask: Sequence[bool]):
     return [(cur_v[0] + shift[0], cur_v[1] + shift[1]) if cur_m else cur_v
             for cur_v, cur_m in zip(vertices, mask)]

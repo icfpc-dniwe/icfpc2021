@@ -6,6 +6,7 @@
 , scipy
 , dataclasses-json
 , shapely
+, pathos
 }:
 
 buildPythonPackage {
