@@ -1,18 +1,15 @@
 import sys
 from ..client import Client
-from ..types import Solution
+from ..types import Solution, Problem
 from ..validator import validate_solution
 from .edge_folding import dummy_folding_solver
 from ..rating import rate
+from typing import Tuple
 
 
-def main():
-    with open(sys.argv[1]) as tf:
-        token = tf.read().strip()
-    client = Client(token)
-    # client.hello()
-    problem = client.get_problem(13)
-    print(problem)
+def solve_problem(client: Client, problem_id: int) -> Tuple[Problem, Solution]:
+    problem = client.get_problem(problem_id)
+    # print(problem)
     test_solution = Solution(
         vertices=[
             (21, 28), (31, 28), (31, 87), (29, 41), (44, 43), (58, 70),
@@ -22,11 +19,23 @@ def main():
         ]
     )
     solution = dummy_folding_solver(problem)
-    print('Solution:', solution)
+    # print('Solution:', solution)
     if solution is None:
-        solution = test_solution
-    assert validate_solution(problem, solution)
-    print(rate(problem, solution))
+        solution = Solution(vertices=problem.figure.vertices)
+    return problem, solution
+
+
+def main():
+    with open(sys.argv[1]) as tf:
+        token = tf.read().strip()
+    client = Client(token)
+    # client.hello()
+    for problem_id in range(1, 60):
+        problem, solution = solve_problem(client, problem_id)
+        if validate_solution(problem, solution):
+            print('Solved!', problem_id, rate(problem, solution))
+    # assert validate_solution(problem, solution)
+    # print(rate(problem, solution))
     # client.post_solution(1, test_solution)
 
 

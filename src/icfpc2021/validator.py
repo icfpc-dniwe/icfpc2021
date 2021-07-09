@@ -27,11 +27,6 @@ def validate_stretching(problem: Problem, solution: Solution) -> bool:
 
 
 def validate_fitting(problem: Problem, solution: Solution) -> bool:
-    hole = Polygon(problem.hole)
-    figure = MultiLineString(
-        [LineString((solution.vertices[cur_edge[0]], solution.vertices[cur_edge[1]]))
-         for cur_edge in problem.figure.edges]
-    )
     return problem.hole_surface().contains(solution.solution_lines(problem.figure))
 
 
