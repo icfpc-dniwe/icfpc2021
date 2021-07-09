@@ -1,5 +1,5 @@
 from numba import njit
-from .types import Point, Problem, Figure
+from .types import Point, Problem, Figure, Solution
 from shapely.geometry import LineString, MultiLineString
 from shapely.geometry.polygon import Polygon
 from typing import Tuple
@@ -19,17 +19,18 @@ def check_edge(hole: Polygon, edge: Tuple[Point, Point]) -> bool:
     return hole.contains(LineString(edge))
 
 
-def validate_solution(problem: Problem, original_figure: Figure, moved_figure: Figure) -> bool:
+def validate_solution(problem: Problem, solution: Solution) -> bool:
     # check stretching
+    original_figure = problem.figure
     for cur_edge in original_figure.edges:
         original_pair = original_figure.vertices[cur_edge[0]], original_figure.vertices[cur_edge[1]]
-        moved_pair = moved_figure.vertices[cur_edge[0]], moved_figure.vertices[cur_edge[1]]
+        moved_pair = solution.vertices[cur_edge[0]], solution.vertices[cur_edge[1]]
         if not check_stretching(original_pair, moved_pair, problem.epsilon):
             return False
     # check fitting inside the hole
     hole = Polygon(problem.hole)
     figure = MultiLineString(
-        [LineString((moved_figure.vertices[cur_edge[0]], moved_figure.vertices[cur_edge[1]]))
-         for cur_edge in moved_figure.edges]
+        [LineString((solution.vertices[cur_edge[0]], solution.vertices[cur_edge[1]]))
+         for cur_edge in original_figure.edges]
     )
     return hole.contains(figure)

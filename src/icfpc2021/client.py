@@ -13,7 +13,7 @@ class Client:
     def hello(self):
         self._call("GET", "/api/hello")
 
-    def get_problem(self, problem_id: int):
+    def get_problem(self, problem_id: int) -> Problem:
         return Problem.from_dict(self._call("GET", f"/api/problems/{problem_id}"))
 
     def post_solution(self, problem_id: int, solution: Solution):
