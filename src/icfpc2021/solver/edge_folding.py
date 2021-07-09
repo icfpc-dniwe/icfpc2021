@@ -2,7 +2,7 @@ import numpy as np
 from shapely.geometry import Polygon, LineString
 from itertools import combinations
 from ..types import Problem, Edge, Solution, Figure, Point
-from ..validator import validate_stretching, check_stretching
+from ..validator import validate_stretching, check_stretching, check_edge
 from ..geometry import distance2
 from typing import Optional, Tuple, List
 
@@ -45,14 +45,21 @@ def _make_solution(left_position: Point, right_position: Point, verticies_positi
     return Solution(vertices=[positions[cur_pos] for cur_pos in verticies_positions])
 
 
-def fit_line_inside_polygon(line: Tuple[Point, Point], polygon: List[Point]) -> Optional[Tuple[Point, Point]]:
+def fit_line_inside_polygon(line: Tuple[Point, Point],
+                            polygon: List[Point],
+                            eps: int
+                            ) -> Optional[Tuple[Point, Point]]:
     solution_length = distance2(*line)
     found_line = None
     found_length = None
     hole = Polygon(polygon)
     for left_point, right_point in combinations(polygon, 2):
         cur_length = distance2(left_point, right_point)
-        if cur_length >= solution_length and hole.contains(LineString((left_point, right_point))):
+        if check_stretching(line, (left_point, right_point), eps):
+            found_line = left_point, right_point
+            found_length = cur_length
+            break
+        elif cur_length >= solution_length and hole.contains(LineString((left_point, right_point))):
             found_line = left_point, right_point
             found_length = cur_length
             break
@@ -88,15 +95,17 @@ def dummy_folding_solver(problem: Problem) -> Optional[Solution]:
     # fit solution inside the hole
     edge = problem.figure.edges[solution_edge]
     vertices = problem.figure.vertices
-    positions = fit_line_inside_polygon((vertices[edge[0]], vertices[edge[1]]), problem.hole)
+    positions = fit_line_inside_polygon((vertices[edge[0]], vertices[edge[1]]), problem.hole, problem.epsilon)
     if positions is None:
         return None
+    hole = Polygon(problem.hole)
     for shift_x in (-1, 0, 1):
         for shift_y in (-1, 0, 1):
             right_pos = positions[1][0] + shift_x, positions[1][1] + shift_y
             if check_stretching((vertices[edge[0]], vertices[edge[1]]),
-                                (positions[0], tuple(right_pos)),
-                                problem.epsilon):
+                                (positions[0], right_pos),
+                                problem.epsilon)\
+                    and check_edge(hole, (positions[0], right_pos)):
                 positions = positions[0], right_pos
                 break
     return _make_solution(positions[0], positions[1], solution)

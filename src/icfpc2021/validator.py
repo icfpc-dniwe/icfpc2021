@@ -9,11 +9,15 @@ from .geometry import distance2
 
 @njit
 def check_stretching(origin_pair: Tuple[Point, Point], moved_pair: Tuple[Point, Point], eps: int) -> bool:
-    return abs(distance2(*moved_pair) / distance2(*origin_pair) - 1) < (eps / 10 ** 6)
+    dist_fitted = distance2(*moved_pair)
+    dist_orig = distance2(*origin_pair)
+    stretching_error = abs(dist_fitted / dist_orig - 1)
+    result = stretching_error <= (eps / 10 ** 6)
+    return result
 
 
 def check_edge(hole: Polygon, edge: Tuple[Point, Point]) -> bool:
-    return hole.contains(LineString(edge))
+    return hole.buffer(1e-9).contains(LineString(edge))
 
 
 def validate_stretching(problem: Problem, solution: Solution) -> bool:
@@ -27,7 +31,7 @@ def validate_stretching(problem: Problem, solution: Solution) -> bool:
 
 
 def validate_fitting(problem: Problem, solution: Solution) -> bool:
-    return problem.hole_surface().contains(solution.solution_lines(problem.figure))
+    return problem.hole_surface().buffer(1e-8).contains(solution.solution_lines(problem.figure))
 
 
 def validate_solution(problem: Problem, solution: Solution) -> bool:

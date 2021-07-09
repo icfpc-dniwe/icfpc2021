@@ -12,13 +12,13 @@ def solve_problem(client: Client, problem_id: int) -> Tuple[Problem, Solution]:
     # print(problem)
     test_solution = Solution(
         vertices=[
-            (20, 0), (40, 20), (20, 40), (0, 20)
+            (20, 0), (40, 20), (0, 20), (20, 40)
         ]
     )
-    solution = None  # dummy_folding_solver(problem)
+    solution = dummy_folding_solver(problem)
     # print('Solution:', solution)
     if solution is None:
-        solution = test_solution  # Solution(vertices=problem.figure.vertices)
+        solution = Solution(vertices=problem.figure.vertices)
     return problem, solution
 
 
@@ -27,11 +27,12 @@ def main():
         token = tf.read().strip()
     client = Client(token)
     # client.hello()
-    for problem_id in range(13, 14):
+    for problem_id in range(27, 28):
+        print(problem_id, ':')
         problem, solution = solve_problem(client, problem_id)
         if validate_solution(problem, solution):
             print('Solved!', problem_id, rate(problem, solution))
-        client.post_solution(problem_id, solution)
+            # client.post_solution(problem_id, solution)
     # assert validate_solution(problem, solution)
     # print(rate(problem, solution))
     # client.post_solution(1, test_solution)
