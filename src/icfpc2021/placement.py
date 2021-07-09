@@ -4,6 +4,7 @@ import scipy.optimize
 import math
 
 from .types import *
+from .rating import rate_points
 
 
 def figure_bounds(hole: Polygon, shape: MultiLineString):
@@ -18,7 +19,7 @@ def figure_bounds(hole: Polygon, shape: MultiLineString):
     ]
 
 
-def fit_figure_function(hole: Polygon, shape: MultiLineString):
+def fit_figure_function(hole: Polygon, shape: MultiLineString, use_rating=True):
     shape_centroid = shape.centroid
 
     def f(args):
@@ -30,18 +31,28 @@ def fit_figure_function(hole: Polygon, shape: MultiLineString):
         candidate = shapely.affinity.translate(candidate, move_x, move_y)
 
         diff = candidate.difference(hole)
-        return diff.length
+        if diff.length > 0:
+            return diff.length
+        elif use_rating:
+            shape_points = [point for line in candidate.geoms for point in line.coords]
+            rate = rate_points(hole.exterior.coords, shape_points)
+            return -1 / rate
+        else:
+            return 0
     return f
 
 
-def fit_figure(hole: Polygon, shape: MultiLineString):
-    func = fit_figure_function(hole, shape)
+def fit_figure(hole: Polygon, shape: MultiLineString, use_rating=True):
+    func = fit_figure_function(hole, shape, use_rating=use_rating)
     bounds = figure_bounds(hole, shape)
 
-    def check_zero(xk, *args):
-        return func(xk) <= 0
+    if use_rating:
+        callback = None
+    else:
+        def callback(xk, *args):
+            return func(xk) <= 0
 
-    res = scipy.optimize.dual_annealing(func, bounds, callback=check_zero, local_search_options={"method": "Nelder-Mead"})
+    res = scipy.optimize.dual_annealing(func, bounds, callback=callback, local_search_options={"method": "Nelder-Mead"})
 
     if res.fun > 0:
         return None

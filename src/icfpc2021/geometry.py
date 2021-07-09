@@ -3,7 +3,6 @@ import math
 from queue import Queue
 from shapely.geometry import Polygon, LineString
 from itertools import combinations
-from .types import Point, Figure
 from typing import List, Tuple, Generator, Optional
 from shapely.geometry import Polygon, MultiLineString
 
@@ -11,12 +10,12 @@ from .types import *
 
 
 @njit
-def distance2(left_point: Point, right_point: Point) -> float:
+def distance2(left_point: PointF, right_point: PointF) -> float:
     return (left_point[0] - right_point[0]) ** 2 + (left_point[1] - right_point[1]) ** 2
 
 
 @njit
-def distance(left_point: Point, right_point: Point) -> float:
+def distance(left_point: PointF, right_point: PointF) -> float:
     return math.sqrt(distance2(left_point, right_point))
 
 
@@ -71,3 +70,7 @@ def lines_to_vertices(edges: List[Edge], figure: MultiLineString, vertices_len: 
         new_vertices[ai] = line.coords[0]
         new_vertices[bi] = line.coords[1]
     return new_vertices
+
+
+def validate_fitting(problem: Problem, solution: Solution) -> bool:
+    return Polygon(problem.hole).buffer(1e-8).contains(vertices_to_lines(solution.vertices, problem.figure.edges))
