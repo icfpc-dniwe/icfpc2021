@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from typing import List, Tuple
 from shapely.geometry import Polygon, MultiLineString
-import shapely.affinity
 
 
 Point = Tuple[int, int]
@@ -11,7 +10,7 @@ PointI = Tuple[int, int]
 
 def figure_lines(vertices: List[Point], edges: List[PointI]):
     lines = [(vertices[ai], vertices[bi]) for (ai, bi) in edges]
-    return shapely.affinity.scale(MultiLineString(lines), yfact=-1)
+    return MultiLineString(lines)
 
 
 @dataclass_json
@@ -32,7 +31,7 @@ class Problem:
     epsilon: int
 
     def hole_surface(self):
-        return shapely.affinity.scale(Polygon(self.hole), yfact=-1)
+        return Polygon(self.hole)
 
 
 @dataclass_json

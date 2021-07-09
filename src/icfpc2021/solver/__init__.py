@@ -2,6 +2,7 @@ import sys
 from ..client import Client
 from ..types import Solution
 from ..validator import validate_solution
+from ..rating import rate
 
 
 def main():
@@ -20,6 +21,7 @@ def main():
         ]
     )
     assert validate_solution(problem, test_solution)
+    print(rate(problem, test_solution))
     # client.post_solution(1, test_solution)
 
 
