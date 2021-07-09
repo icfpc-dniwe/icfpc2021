@@ -19,7 +19,9 @@ setup(
     install_requires=[
         "requests",
         "numpy",
-        "numba"
+        "numba",
+        "shapely",
+        "dataclasses_json"
     ],
     entry_points={
         "console_scripts": [
