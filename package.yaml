@@ -1,0 +1,37 @@
+name: dniwechan
+version: 0.1.0.0
+synopsis: Helpful library for ICFPC.
+license: BSD3
+author: DNIWE :: a
+maintainer: ab@fmap.me
+
+dependencies:
+  - base >= 4.8
+  - containers
+  - pqueue
+  - linear
+  - vector
+  - deepseq
+  - primitive
+  - mono-traversable
+
+default-extensions:
+  - ScopedTypeVariables
+  - RecordWildCards
+  - TypeFamilies
+  - FlexibleContexts
+
+ghc-options: -Wall
+
+tests:
+  tests:
+    main: Tests.hs
+    source-dirs: tests
+    dependencies:
+      - dniwechan
+      - tasty
+      - tasty-quickcheck
+      - tasty-hunit
+      - ChasingBottoms
+      - vector
+      - linear
