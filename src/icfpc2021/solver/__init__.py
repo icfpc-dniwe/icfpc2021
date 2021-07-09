@@ -8,7 +8,7 @@ def main():
     with open(sys.argv[1]) as tf:
         token = tf.read().strip()
     client = Client(token)
-    client.hello()
+    # client.hello()
     problem = client.get_problem(1)
     print(problem)
     test_solution = Solution(
@@ -20,7 +20,7 @@ def main():
         ]
     )
     assert validate_solution(problem, test_solution)
-    client.post_solution(1, test_solution)
+    # client.post_solution(1, test_solution)
 
 
 if __name__ == "__main__":

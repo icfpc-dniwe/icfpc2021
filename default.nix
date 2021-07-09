@@ -1,6 +1,7 @@
 { lib
 , buildPythonPackage
 , numpy
+, numba
 , requests
 , dataclasses-json
 , shapely
@@ -16,6 +17,7 @@ buildPythonPackage {
 
   propagatedBuildInputs = [
     numpy
+    numba
     requests
     dataclasses-json
     shapely
