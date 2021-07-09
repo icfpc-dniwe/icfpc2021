@@ -24,5 +24,6 @@ buildPythonPackage {
     scipy
     dataclasses-json
     shapely
+    pathos
   ];
 }

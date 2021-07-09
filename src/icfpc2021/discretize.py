@@ -1,13 +1,13 @@
 import math
 import functools
-from typing import List
+from typing import List, Optional
 from shapely.geometry import Polygon
 
 from .types import *
 from .geometry import distance2, vertices_to_lines
 
 
-def discretize_points(hole: Polygon, edges: List[Edge], points: List[PointF]):
+def discretize_points(hole: Polygon, edges: List[Edge], points: List[PointF]) -> Optional[List[Point]]:
     new_points = list(points)
     buffered_hole = hole.buffer(1e-8)
     for i, (x, y) in enumerate(new_points):
@@ -25,5 +25,5 @@ def discretize_points(hole: Polygon, edges: List[Edge], points: List[PointF]):
                 found = True
                 break
         if not found:
-            raise RuntimeError(f"Cannot discretize point {i}")
+            return None
     return new_points

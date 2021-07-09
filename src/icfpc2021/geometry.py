@@ -1,4 +1,5 @@
 from numba import njit
+from numba.typed import List as NBList
 import numpy as np
 import math
 from queue import Queue
@@ -104,12 +105,12 @@ def mirror_shift(edge: Tuple[PointF, PointF], point: PointF) -> PointF:
 
 
 @njit(parallel=True)
-def shift_points(vertices: Sequence[PointF], shift: PointF) -> List[PointF]:
+def shift_points(vertices: NBList[PointF], shift: PointF) -> NBList[PointF]:
     return [(cur_v[0] + shift[0], cur_v[1] + shift[1]) for cur_v in vertices]
 
 
-@njit(parallel=True)
-def shift_points_filter(vertices: Sequence[PointF], shift: PointF, mask: Sequence[bool]):
+@njit
+def shift_points_filter(vertices: NBList[PointF], shift: PointF, mask: NBList[bool]):
     return [(cur_v[0] + shift[0], cur_v[1] + shift[1]) if cur_m else cur_v
             for cur_v, cur_m in zip(vertices, mask)]
 
@@ -118,21 +119,25 @@ def mirror_against(edges: Sequence[Edge],
                    vertices: Sequence[PointF],
                    fixed_edge: Tuple[int, int]
                    ) -> Optional[List[PointF]]:
-    if distance2(vertices[fixed_edge[0]], vertices[fixed_edge[1]]) < 1e-7:
+    vertices_list = NBList()
+    [vertices_list.append(v) for v in vertices]
+    if distance2(vertices_list[fixed_edge[0]], vertices_list[fixed_edge[1]]) < 1e-7:
         return None
     free_point = find_free_point(edges, fixed_edge)
     fixed_points = fixed_edge[0], fixed_edge[1]
-    movable_points = find_movable_points(edges, vertices, free_point, fixed_points)
-    if len(movable_points) + 2 >= len(vertices):
+    movable_points = find_movable_points(edges, vertices_list, free_point, fixed_points)
+    if len(movable_points) + 2 >= len(vertices_list):
         # move only one point
         movable_points = [free_point]
     else:
         movable_points = movable_points
-    shift = mirror_shift((vertices[fixed_edge[0]], vertices[fixed_edge[1]]), vertices[free_point])
-    mask = [False] * len(vertices)
+    shift = mirror_shift((vertices_list[fixed_edge[0]], vertices_list[fixed_edge[1]]), vertices_list[free_point])
+    mask = NBList()
+    for i in range(len(vertices_list)):
+        mask.append(False)
     for cur_p in movable_points:
         mask[cur_p] = True
-    return shift_points_filter(vertices, shift, mask)
+    return shift_points_filter(vertices_list, shift, mask)
 
 
 def vertices_to_lines(vertices: List[Point], edges: List[Edge]) -> MultiLineString:
