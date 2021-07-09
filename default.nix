@@ -2,6 +2,7 @@
 , buildPythonPackage
 , numpy
 , requests
+, dataclasses-json
 }:
 
 buildPythonPackage {
@@ -15,5 +16,6 @@ buildPythonPackage {
   propagatedBuildInputs = [
     numpy
     requests
+    dataclasses-json
   ];
 }
