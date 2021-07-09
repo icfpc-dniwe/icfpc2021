@@ -21,6 +21,7 @@ def figure_bounds(hole: Polygon, shape: MultiLineString):
 
 def fit_figure_function(hole: Polygon, shape: MultiLineString, use_rating=True):
     shape_centroid = shape.centroid
+    buffer_hole = hole.buffer(1e-9)
 
     def f(args):
         rotate = args[0]
@@ -30,7 +31,7 @@ def fit_figure_function(hole: Polygon, shape: MultiLineString, use_rating=True):
         candidate = shapely.affinity.rotate(shape, rotate, shape_centroid, use_radians=True)
         candidate = shapely.affinity.translate(candidate, move_x, move_y)
 
-        diff = candidate.difference(hole)
+        diff = candidate.difference(buffer_hole)
         if diff.length > 0:
             return diff.length
         elif use_rating:
