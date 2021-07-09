@@ -1,19 +1,16 @@
-name: dniwechan
+name: icfpc2021
 version: 0.1.0.0
-synopsis: Helpful library for ICFPC.
+synopsis: Pitiful attempt at solving ICFPC 2021
 license: BSD3
-author: DNIWE :: a
+author: "DNIWE :: a"
 maintainer: ab@fmap.me
 
 dependencies:
   - base >= 4.8
-  - containers
-  - pqueue
-  - linear
-  - vector
-  - deepseq
-  - primitive
-  - mono-traversable
+  - dniwechan
+
+library:
+  source-dirs: src
 
 default-extensions:
   - ScopedTypeVariables
@@ -23,15 +20,9 @@ default-extensions:
 
 ghc-options: -Wall
 
-tests:
-  tests:
-    main: Tests.hs
-    source-dirs: tests
+executables:
+  main:
+    main: Main.hs
+    source-dirs: exe
     dependencies:
-      - dniwechan
-      - tasty
-      - tasty-quickcheck
-      - tasty-hunit
-      - ChasingBottoms
-      - vector
-      - linear
+      - icfpc2021

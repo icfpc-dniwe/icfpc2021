@@ -1,0 +1,3 @@
+[submodule "ext/dniwechan"]
+	path = ext/dniwechan
+	url = git@abbradar.moe:dniwe/dniwechan
