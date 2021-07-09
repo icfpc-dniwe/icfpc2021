@@ -19,6 +19,7 @@ setup(
     install_requires=[
         "requests",
         "numpy",
+        "scipy",
         "numba",
         "shapely",
         "dataclasses_json"

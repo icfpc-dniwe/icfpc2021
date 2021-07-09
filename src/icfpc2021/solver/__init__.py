@@ -1,10 +1,16 @@
 import sys
+import shapely.affinity
+from shapely.geometry import Polygon
+from typing import Tuple
+
 from ..client import Client
 from ..types import Solution, Problem
 from ..validator import validate_solution
+from ..geometry import vertices_to_lines, lines_to_vertices
+from ..placement import fit_figure
+from ..discretize import discretize_points
 from .edge_folding import dummy_folding_solver
 from ..rating import rate
-from typing import Tuple
 
 
 def solve_problem(client: Client, problem_id: int) -> Tuple[Problem, Solution]:
@@ -22,17 +28,38 @@ def solve_problem(client: Client, problem_id: int) -> Tuple[Problem, Solution]:
     return problem, solution
 
 
-def main():
-    with open(sys.argv[1]) as tf:
-        token = tf.read().strip()
-    client = Client(token)
-    # client.hello()
+def solve_first_problem(client: Client):
+    problem = client.get_problem(1)
+    test_solution = Solution(
+        vertices=[
+            (21, 28), (31, 28), (31, 87), (29, 41), (44, 43), (58, 70),
+            (38, 79), (32, 31), (36, 50), (39, 40), (66, 77), (42, 29),
+            (46, 49), (49, 38), (39, 57), (69, 66), (41, 70), (39, 60),
+            (42, 25), (40, 35),
+        ]
+    )
+    hole = Polygon(problem.hole)
+    original_figure = vertices_to_lines(test_solution.vertices, problem.figure.edges)
+    test_figure = shapely.affinity.rotate(original_figure, 15, "centroid", use_radians=True)
+    candidate = fit_figure(hole, test_figure)
+    test_points = lines_to_vertices(problem.figure.edges, candidate)
+    discretized_points = discretize_points(hole, problem.figure.edges, test_points)
+    assert validate_solution(problem, Solution(vertices=discretized_points))
+
+
+def solve_problem_28():
     for problem_id in range(27, 28):
         print(problem_id, ':')
         problem, solution = solve_problem(client, problem_id)
         if validate_solution(problem, solution):
             print('Solved!', problem_id, rate(problem, solution))
-            # client.post_solution(problem_id, solution)
+
+
+def main():
+    with open(sys.argv[1]) as tf:
+        token = tf.read().strip()
+    client = Client(token)
+    solve_first_problem(client)
     # assert validate_solution(problem, solution)
     # print(rate(problem, solution))
     # client.post_solution(1, test_solution)

@@ -11,7 +11,6 @@ def figure_bounds(hole: Polygon, shape: MultiLineString):
     (hole_minx, hole_miny, hole_maxx, hole_maxy) = hole.bounds
     x_dist = hole_minx - shape_minx
     y_dist = hole_miny - shape_miny
-    print(shape.bounds, hole.bounds)
     return [
         (0, 2*math.pi),
         (hole_minx - shape_minx, hole_maxx - shape_minx),

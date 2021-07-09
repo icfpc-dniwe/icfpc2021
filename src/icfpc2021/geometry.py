@@ -4,7 +4,7 @@ from queue import Queue
 from shapely.geometry import Polygon, LineString
 from itertools import combinations
 from .types import Point, Figure
-from typing import List, Tuple, Generator
+from typing import List, Tuple, Generator, Optional
 from shapely.geometry import Polygon, MultiLineString
 
 from .types import *
@@ -63,8 +63,10 @@ def vertices_to_lines(vertices: List[Point], edges: List[Edge]) -> MultiLineStri
     return MultiLineString(lines)
 
 
-def lines_to_vertices(vertices: List[Point], edges: List[Edge], figure: MultiLineString) -> List[PointF]:
-    new_vertices = [(0.0, 0.0)] * len(vertices)
+def lines_to_vertices(edges: List[Edge], figure: MultiLineString, vertices_len: Optional[int] = None) -> List[PointF]:
+    if vertices_len is None:
+        vertices_len = max(map(lambda edge: max(*edge), edges)) + 1
+    new_vertices = [(0.0, 0.0)] * vertices_len
     for ((ai, bi), line) in zip(edges, figure.geoms):
         new_vertices[ai] = line.coords[0]
         new_vertices[bi] = line.coords[1]
