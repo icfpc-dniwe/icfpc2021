@@ -16,13 +16,26 @@ def check_edge(hole: Polygon, edge: Tuple[Point, Point]) -> bool:
     return hole.contains(LineString(edge))
 
 
-def validate_solution(problem: Problem, solution: Solution) -> bool:
-    # check stretching
+def validate_stretching(problem: Problem, solution: Solution) -> bool:
     original_figure = problem.figure
     for cur_edge in original_figure.edges:
         original_pair = original_figure.vertices[cur_edge[0]], original_figure.vertices[cur_edge[1]]
         moved_pair = solution.vertices[cur_edge[0]], solution.vertices[cur_edge[1]]
         if not check_stretching(original_pair, moved_pair, problem.epsilon):
             return False
-    # check fitting inside the hole
+    return True
+
+
+def validate_fitting(problem: Problem, solution: Solution) -> bool:
+    hole = Polygon(problem.hole)
+    figure = MultiLineString(
+        [LineString((solution.vertices[cur_edge[0]], solution.vertices[cur_edge[1]]))
+         for cur_edge in problem.figure.edges]
+    )
     return problem.hole_surface().contains(solution.solution_lines(problem.figure))
+
+
+def validate_solution(problem: Problem, solution: Solution) -> bool:
+    valid_stretching = validate_stretching(problem, solution)
+    valid_fitting = validate_fitting(problem, solution)
+    return valid_stretching and valid_fitting

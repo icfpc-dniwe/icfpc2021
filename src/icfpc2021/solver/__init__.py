@@ -2,6 +2,7 @@ import sys
 from ..client import Client
 from ..types import Solution
 from ..validator import validate_solution
+from .edge_folding import dummy_folding_solver
 from ..rating import rate
 
 
@@ -10,7 +11,7 @@ def main():
         token = tf.read().strip()
     client = Client(token)
     # client.hello()
-    problem = client.get_problem(1)
+    problem = client.get_problem(13)
     print(problem)
     test_solution = Solution(
         vertices=[
@@ -20,8 +21,12 @@ def main():
             (42, 25), (40, 35),
         ]
     )
-    assert validate_solution(problem, test_solution)
-    print(rate(problem, test_solution))
+    solution = dummy_folding_solver(problem)
+    print('Solution:', solution)
+    if solution is None:
+        solution = test_solution
+    assert validate_solution(problem, solution)
+    print(rate(problem, solution))
     # client.post_solution(1, test_solution)
 
 
