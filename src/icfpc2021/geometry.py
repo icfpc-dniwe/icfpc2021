@@ -5,6 +5,9 @@ from shapely.geometry import Polygon, LineString
 from itertools import combinations
 from .types import Point, Figure
 from typing import List, Tuple, Generator
+from shapely.geometry import Polygon, MultiLineString
+
+from .types import *
 
 
 @njit
@@ -53,3 +56,16 @@ def find_movable_points(figure: Figure, movable_point: int, fixed_points: List[i
                 points_queue.put(cur_neighbor)
                 result.append(cur_neighbor)
     return result
+
+
+def vertices_to_lines(vertices: List[Point], edges: List[Edge]) -> MultiLineString:
+    lines = [(vertices[ai], vertices[bi]) for (ai, bi) in edges]
+    return MultiLineString(lines)
+
+
+def lines_to_vertices(vertices: List[Point], edges: List[Edge], figure: MultiLineString) -> List[PointF]:
+    new_vertices = [(0.0, 0.0)] * len(vertices)
+    for ((ai, bi), line) in zip(edges, figure.geoms):
+        new_vertices[ai] = line.coords[0]
+        new_vertices[bi] = line.coords[1]
+    return new_vertices

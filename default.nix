@@ -3,6 +3,7 @@
 , numpy
 , numba
 , requests
+, scipy
 , dataclasses-json
 , shapely
 }:
@@ -19,6 +20,7 @@ buildPythonPackage {
     numpy
     numba
     requests
+    scipy
     dataclasses-json
     shapely
   ];

@@ -4,7 +4,7 @@ from shapely.geometry.polygon import Polygon
 from typing import Tuple
 
 from .types import Point, Problem, Figure, Solution
-from .geometry import distance2
+from .geometry import distance2, vertices_to_lines
 
 
 @njit
@@ -31,7 +31,7 @@ def validate_stretching(problem: Problem, solution: Solution) -> bool:
 
 
 def validate_fitting(problem: Problem, solution: Solution) -> bool:
-    return problem.hole_surface().buffer(1e-8).contains(solution.solution_lines(problem.figure))
+    return Polygon(problem.hole).buffer(1e-8).contains(vertices_to_lines(solution.vertices, problem.figure.edges))
 
 
 def validate_solution(problem: Problem, solution: Solution) -> bool:
