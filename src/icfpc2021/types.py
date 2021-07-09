@@ -5,6 +5,7 @@ from typing import List, Tuple, Callable, Optional
 
 Point = Tuple[int, int]
 Edge = Tuple[int, int]
+PointI = Tuple[int, int]
 PointF = Tuple[float, float]
 
 

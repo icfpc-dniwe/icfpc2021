@@ -1,9 +1,10 @@
 from numba import njit
+import numpy as np
 import math
 from queue import Queue
 from shapely.geometry import Polygon, LineString
 from itertools import combinations
-from typing import List, Tuple, Generator, Optional
+from typing import List, Tuple, Generator, Sequence
 from shapely.geometry import Polygon, MultiLineString
 
 from .types import *
@@ -32,29 +33,91 @@ def find_longest_diagonal(polygon: Polygon) -> Tuple[Point, Point]:
     return max_diag
 
 
-def find_movable_points(figure: Figure, movable_point: int, fixed_points: List[int]) -> List[int]:
-    def find_neighbors(point: int) -> Generator[int, None, None]:
-        for cur_edge in figure.edges:
-            if cur_edge[0] == point:
-                yield cur_edge[1]
-            elif cur_edge[1] == point:
-                yield cur_edge[0]
+def find_neighbors(edges: Sequence[Edge], point: int) -> Generator[int, None, None]:
+    for cur_edge in edges:
+        if cur_edge[0] == point:
+            yield cur_edge[1]
+        elif cur_edge[1] == point:
+            yield cur_edge[0]
 
-    watched_points = [False] * len(figure.vertices)
+
+def find_movable_points(edges: Sequence[Edge],
+                        vertices: Sequence[PointF],
+                        movable_point: int,
+                        fixed_points: Sequence[int]
+                        ) -> List[int]:
+    watched_points = [False] * len(vertices)
     watched_points[movable_point] = True
     for cur_point in fixed_points:
         watched_points[cur_point] = True
     result = [movable_point]
     points_queue = Queue()
-    points_queue.put(movable_point)
+    for cur_p in fixed_points:
+        points_queue.put(cur_p)
     while not points_queue.empty():
         cur_point = points_queue.get()
-        for cur_neighbor in find_neighbors(cur_point):
+        for cur_neighbor in find_neighbors(edges, cur_point):
             if not watched_points[cur_neighbor]:
                 watched_points[cur_neighbor] = True
                 points_queue.put(cur_neighbor)
-                result.append(cur_neighbor)
+    for cur_p, cur_r in enumerate(watched_points):
+        if not cur_r:
+            result.append([cur_p])
     return result
+
+
+def find_free_point(edges: Sequence[Edge], fixed_edge: Tuple[int, int]) -> int:
+    free_point = None
+    for cur_point in find_neighbors(edges, fixed_edge[0]):
+        if cur_point != fixed_edge[1]:
+            free_point = cur_point
+            break
+    if free_point is None:
+        for cur_point in find_neighbors(edges, fixed_edge[1]):
+            if cur_point != fixed_edge[0]:
+                free_point = cur_point
+                break
+    return free_point
+
+
+@njit
+def point_dot(left_point: PointF, right_point: PointF) -> float:
+    return left_point[0] * right_point[0] + left_point[1] * right_point[1]
+
+
+@njit
+def mirror_shift(edge: Tuple[PointF, PointF], point: PointF) -> PointF:
+    section = np.array(edge[1]) - np.array(edge[0])
+    upper = np.array(point) - np.array(edge[0])
+    shift = 2 * (np.dot(upper, section) / np.dot(section, section) * section - upper)
+    return shift[0], shift[1]
+
+
+@njit
+def shift_points(vertices: Sequence[PointF], shift: PointF) -> List[PointF]:
+    return [(cur_v[0] + shift[0], cur_v[1] + shift[1]) for cur_v in vertices]
+
+
+@njit
+def shift_points_filter(vertices: Sequence[PointF], shift: PointF, mask: Sequence[bool]):
+    return [(cur_v[0] + shift[0], cur_v[1] + shift[1]) if cur_m else cur_v
+            for cur_v, cur_m in zip(vertices, mask)]
+
+
+def mirror_against(edges: Sequence[Edge],
+                   vertices: Sequence[PointF],
+                   fixed_edge: Tuple[int, int]
+                   ) -> Optional[List[PointF]]:
+    free_point = find_free_point(edges, fixed_edge)
+    fixed_points = fixed_edge[0], fixed_edge[1]
+    movable_points = find_movable_points(edges, vertices, free_point, fixed_points)
+    if len(movable_points) + 2 >= len(vertices):
+        return None
+    shift = mirror_shift((vertices[fixed_edge[0]], vertices[fixed_edge[1]]), vertices[free_point])
+    mask = [False] * len(vertices)
+    for cur_p in movable_points:
+        mask[cur_p] = True
+    return shift_points_filter(vertices, shift, mask)
 
 
 def vertices_to_lines(vertices: List[Point], edges: List[Edge]) -> MultiLineString:
