@@ -38,7 +38,11 @@ def main():
     with open(sys.argv[1]) as tf:
         token = tf.read().strip()
     client = Client(token)
-    for problem_id in range(1, PROBLEMS + 1):
+    if len(sys.argv) > 2:
+        problems_range = [int(id) for id in sys.argv[2:]]
+    else:
+        problems_range = range(1, PROBLEMS + 1)
+    for problem_id in problems_range:
         problem = client.get_problem(problem_id)
         print(f"Solving problem {problem_id}")
         try:
