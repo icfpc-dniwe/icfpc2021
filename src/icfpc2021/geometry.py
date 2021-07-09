@@ -52,17 +52,14 @@ def find_movable_points(edges: Sequence[Edge],
         watched_points[cur_point] = True
     result = [movable_point]
     points_queue = Queue()
-    for cur_p in fixed_points:
-        points_queue.put(cur_p)
+    points_queue.put(movable_point)
     while not points_queue.empty():
         cur_point = points_queue.get()
         for cur_neighbor in find_neighbors(edges, cur_point):
             if not watched_points[cur_neighbor]:
                 watched_points[cur_neighbor] = True
                 points_queue.put(cur_neighbor)
-    for cur_p, cur_r in enumerate(watched_points):
-        if not cur_r:
-            result.append([cur_p])
+                result.append(cur_neighbor)
     return result
 
 
@@ -95,7 +92,7 @@ def point_plus(left_point: PointF, right_point: PointF) -> PointF:
     return left_point[0] + right_point[0], left_point[1] + right_point[1]
 
 
-@njit
+# @njit
 def mirror_shift(edge: Tuple[PointF, PointF], point: PointF) -> PointF:
     section = point_minus(edge[1], edge[0])
     upper = point_minus(point, edge[0])
@@ -121,11 +118,16 @@ def mirror_against(edges: Sequence[Edge],
                    vertices: Sequence[PointF],
                    fixed_edge: Tuple[int, int]
                    ) -> Optional[List[PointF]]:
+    if distance2(vertices[fixed_edge[0]], vertices[fixed_edge[1]]) < 1e-7:
+        return None
     free_point = find_free_point(edges, fixed_edge)
     fixed_points = fixed_edge[0], fixed_edge[1]
     movable_points = find_movable_points(edges, vertices, free_point, fixed_points)
     if len(movable_points) + 2 >= len(vertices):
-        return None
+        # move only one point
+        movable_points = [free_point]
+    else:
+        movable_points = movable_points
     shift = mirror_shift((vertices[fixed_edge[0]], vertices[fixed_edge[1]]), vertices[free_point])
     mask = [False] * len(vertices)
     for cur_p in movable_points:
