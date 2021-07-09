@@ -3,6 +3,7 @@
 , numpy
 , requests
 , dataclasses-json
+, shapely
 }:
 
 buildPythonPackage {
@@ -17,5 +18,6 @@ buildPythonPackage {
     numpy
     requests
     dataclasses-json
+    shapely
   ];
 }
